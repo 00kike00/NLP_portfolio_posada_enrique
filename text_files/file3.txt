@@ -1,0 +1,6 @@
+Hello world!
+Hello world!
+This line is duplicated.
+This line is duplicated.
+Punctuation!!! Should; be: removed?
+Numbers like 123 are here.

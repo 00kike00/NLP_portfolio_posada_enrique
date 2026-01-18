@@ -1,0 +1,6 @@
+Hello world!
+This is a simple text file.
+This file is used for testing.
+Hello again, world!
+Python programming is fun.
+Level madam racecar civic kayak
