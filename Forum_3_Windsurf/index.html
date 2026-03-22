@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Daily Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin {
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app">
+        <div class="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto">
+                <div class="text-center mb-12">
+                    <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                        Smart Daily Planner
+                    </h1>
+                    <p class="text-lg text-gray-600">
+                        Transform your messy notes into an organized daily schedule
+                    </p>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-8 mb-8">
+                    <div class="mb-6">
+                        <label for="plan" class="block text-sm font-medium text-gray-700 mb-2">
+                            Your Daily Plan
+                        </label>
+                        <textarea
+                            id="plan"
+                            placeholder="Write your messy daily plan here... Example: 'need to email boss, call dentist, workout, buy groceries, finish project report, meet friend for coffee'"
+                            class="w-full h-40 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                        ></textarea>
+                    </div>
+
+                    <div id="error" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 hidden">
+                        
+                    </div>
+
+                    <button
+                        id="organizeBtn"
+                        onclick="organizeDay()"
+                        class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+                    >
+                        Organize my day
+                    </button>
+                </div>
+
+                <div id="results" class="space-y-8 hidden">
+                    <div class="bg-white rounded-lg shadow-md p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-900">Your Organized Day</h2>
+                            <button
+                                onclick="regenerate()"
+                                class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                            >
+                                Regenerate
+                            </button>
+                        </div>
+
+                        <div class="space-y-8">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Schedule</h3>
+                                <div id="schedule" class="space-y-3">
+                                    <!-- Schedule items will be inserted here -->
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Priority Tasks</h3>
+                                <div id="priorities" class="space-y-2">
+                                    <!-- Priority items will be inserted here -->
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Reasoning</h3>
+                                <div id="reasoning" class="p-4 bg-blue-50 rounded-lg text-gray-700">
+                                    <!-- Reasoning will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentResult = null;
+        let isLoading = false;
+
+        function generateMockResponse(plan) {
+            const tasks = plan.toLowerCase();
+            
+            const mockResponse = {
+                schedule: [
+                    { time: "09:00–09:30", task: "Morning routine & coffee" },
+                    { time: "09:30–10:30", task: "Check and respond to important emails" },
+                    { time: "10:30–11:00", task: "Make important phone calls" },
+                    { time: "11:00–12:00", task: "Focus work on priority project" },
+                    { time: "12:00–13:00", task: "Lunch break" },
+                    { time: "13:00–14:00", task: "Run errands (groceries, etc.)" },
+                    { time: "14:00–15:30", task: "Continue focused work" },
+                    { time: "15:30–16:00", task: "Exercise/walk" },
+                    { time: "16:00–17:00", task: "Meetings and collaboration" },
+                    { time: "17:00–18:00", task: "Wrap up and plan tomorrow" }
+                ],
+                priorities: [
+                    "Complete urgent project tasks",
+                    "Respond to important communications",
+                    "Handle time-sensitive appointments",
+                    "Maintain work-life balance with exercise",
+                    "Prepare for the next day"
+                ],
+                reasoning: "I've organized your day to start with high-energy tasks when you're fresh, included breaks to maintain productivity, grouped similar activities together, and ensured a balance between focused work and necessary errands. The schedule builds in buffer time and ends with planning for tomorrow."
+            };
+
+            // Customize based on input keywords
+            if (tasks.includes('gym') || tasks.includes('workout')) {
+                mockResponse.schedule[7] = { time: "15:30–16:30", task: "Gym workout" };
+            }
+            
+            if (tasks.includes('meeting') || tasks.includes('call')) {
+                mockResponse.schedule[8] = { time: "16:00–17:00", task: "Scheduled meetings/calls" };
+            }
+
+            return mockResponse;
+        }
+
+        function organizeDay() {
+            const input = document.getElementById('plan').value;
+            const errorDiv = document.getElementById('error');
+            const resultsDiv = document.getElementById('results');
+            const organizeBtn = document.getElementById('organizeBtn');
+
+            if (!input.trim()) {
+                errorDiv.textContent = 'Please enter your daily plan first';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            errorDiv.classList.add('hidden');
+            isLoading = true;
+            organizeBtn.disabled = true;
+            organizeBtn.innerHTML = '<span class="animate-spin inline-block mr-2">⟳</span>Thinking...';
+
+            // Simulate API call delay
+            setTimeout(() => {
+                try {
+                    currentResult = generateMockResponse(input);
+                    displayResults(currentResult);
+                    resultsDiv.classList.remove('hidden');
+                } catch (err) {
+                    errorDiv.textContent = 'Something went wrong. Please try again.';
+                    errorDiv.classList.remove('hidden');
+                } finally {
+                    isLoading = false;
+                    organizeBtn.disabled = false;
+                    organizeBtn.textContent = 'Organize my day';
+                }
+            }, 1500);
+        }
+
+        function regenerate() {
+            if (isLoading) return;
+            organizeDay();
+        }
+
+        function displayResults(result) {
+            // Display schedule
+            const scheduleDiv = document.getElementById('schedule');
+            scheduleDiv.innerHTML = result.schedule.map((item, index) => `
+                <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                    <div class="flex-shrink-0 w-20 text-sm font-medium text-blue-600">
+                        ${item.time}
+                    </div>
+                    <div class="flex-1 text-gray-900">
+                        ${item.task}
+                    </div>
+                </div>
+            `).join('');
+
+            // Display priorities
+            const prioritiesDiv = document.getElementById('priorities');
+            prioritiesDiv.innerHTML = result.priorities.map((priority, index) => `
+                <div class="flex items-center space-x-3">
+                    <div class="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium">
+                        ${index + 1}
+                    </div>
+                    <div class="text-gray-900">${priority}</div>
+                </div>
+            `).join('');
+
+            // Display reasoning
+            const reasoningDiv = document.getElementById('reasoning');
+            reasoningDiv.textContent = result.reasoning;
+        }
+
+        // Add enter key support for textarea
+        document.getElementById('plan').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                organizeDay();
+            }
+        });
+    </script>
+</body>
+</html>
