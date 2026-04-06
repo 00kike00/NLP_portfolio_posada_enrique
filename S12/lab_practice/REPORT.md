@@ -77,3 +77,7 @@ Regarding the AI responses, they are very good and is adequates to the given sys
 
 **Sentiment-Aware Response Generation**
  ![Image showing AI response and the predicted sentiment](image-2.png)
+
+## Video
+**Follow the link**
+[Link](https://drive.google.com/file/d/1oKD67iXiQ6fOWKvW4cFZyVLA9k8kCT8u/view?usp=sharing)
